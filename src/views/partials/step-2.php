@@ -20,7 +20,7 @@
     </div>
 
     <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-secondary" disabled>Back</button>
+        <button type="button" id="back-step-2" class="btn btn-secondary">Back</button>
 
         <button type="button" id="next-step-2" class="btn btn-primary">Next (Finish)</button>
     </div>

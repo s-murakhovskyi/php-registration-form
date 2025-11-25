@@ -23,12 +23,12 @@ switch ($path) {
         $controller->index();
         break;
 
-    case '/submit-step-1':
-        $controller->submitStep1();
+    case '/check-email':
+        $controller->checkEmail();
         break;
 
-    case '/submit-step-2':
-        $controller->submitStep2();
+    case '/submit-full-form':
+        $controller->submitFullForm();
         break;
 
     case '/all-members':

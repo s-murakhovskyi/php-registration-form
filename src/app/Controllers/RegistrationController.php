@@ -3,105 +3,99 @@ namespace App\Controllers;
 
 use App\Models\User;
 
-// CRITICAL: Since we don't have an autoloader, we must manually include the file
 require_once __DIR__ . '/../Models/User.php';
 
 class RegistrationController
 {
     /**
-     * Show the main registration page (The View)
+     * Show the main registration page
      */
     public function index()
     {
-        // Start output buffering to capture the view content
         ob_start();
-
-        // 1. Load the "home" view (which loads the map & form)
         include __DIR__ . '/../../views/home.php';
-
-        // 2. Get the contents of the buffer and clean it
         $content = ob_get_clean();
-
-        // 3. Load the main layout file.
         include __DIR__ . '/../../views/layout.php';
     }
 
-    /**
-     * Handle AJAX submission for Step 1 (The Logic)
-     */
-    public function submitStep1()
+    public function checkEmail() // check if email is already used
     {
-        // Debug logging
-        file_put_contents(__DIR__ . '/../../public/debug_log.txt', "Controller: submitStep1 called\n", FILE_APPEND);
-
         header('Content-Type: application/json');
 
+        // Read JSON input from JavaScript
         $json = file_get_contents('php://input');
         $data = json_decode($json, true);
+        $email = $data['email'] ?? '';
 
-        if (empty($data['first_name']) || empty($data['last_name']) || empty($data['email'])) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'First Name, Last Name, and Email are required.'
-            ]);
+        if (empty($email)) {
+            echo json_encode(['exists' => false]);
             return;
         }
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        $_SESSION['step1_data'] = $data;
-
-        // Save to Database using the User Model
         $userModel = new User();
-        $result = $userModel->create($data);
-
-        if ($result['success']) {
-            // CRITICAL: Save the new User ID to session so Step 2 knows who to update
-            $_SESSION['user_id'] = $result['id'];
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Step 1 saved!',
-                'user_id' => $result['id']
-            ]);
+        if ($userModel->emailExists($email)) {
+            echo json_encode(['exists' => true, 'message' => 'This email is already registered.']);
         } else {
-            echo json_encode(['success' => false, 'message' => $result['message']]);
+            echo json_encode(['exists' => false]);
         }
     }
 
     /**
-     * Handle Step 2 (Update User with Photo & Company)
+     * Handle the submission
      */
-    public function submitStep2()
+    public function submitFullForm()
     {
         header('Content-Type: application/json');
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        // --- BACKEND VALIDATION ---
+        $missingFields = [];
+        $requiredFields = [
+            'first_name' => 'First Name',
+            'last_name' => 'Last Name',
+            'birthdate' => 'Birthdate',
+            'report_subject' => 'Report Subject',
+            'country' => 'Country',
+            'phone' => 'Phone',
+            'email' => 'Email'
+        ];
+
+        // Check if required fields are empty
+        foreach ($requiredFields as $key => $label) {
+            if (empty($_POST[$key])) {
+                $missingFields[] = $label;
+            }
         }
 
-        // 1. Security Check: Do we have a User ID from Step 1?
-        if (!isset($_SESSION['user_id'])) {
-            echo json_encode(['success' => false, 'message' => 'Session expired. Please refresh and try again.']);
+        // --- EMAIL VALIDATION ---
+        if (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+            $missingFields[] = 'Email (Invalid Format)'; // <--- Rejects "bob", accepts "bob@mail.com"
+        }
+
+        // --- PHONE VALIDATION ---
+        if (!empty($_POST['phone']) && !preg_match('/^[\+]?[\d\s\-\(\)]{10,25}$/', $_POST['phone'])) {
+            $missingFields[] = 'Phone (Invalid Format or Length)'; // <--- Rejects "abc" or "+1"
+        }
+
+        // If validation fails, stop and return errors
+        if (!empty($missingFields)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Please fix the following fields: ' . implode(', ', $missingFields)
+            ]);
             return;
         }
 
-        $userId = $_SESSION['user_id'];
+        // 2. --- PHOTO UPLOAD ---
+        $photoPath = 'default.jpg';
 
-        // 2. Handle Photo Upload
-        $photoPath = null;
-
-        // Check if a file was actually uploaded without errors
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/../../public/uploads/';
 
-            // Create upload directory if it doesn't exist
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
+                chmod($uploadDir, 0777);
             }
 
-            // Generate unique name
             $fileName = time() . '_' . basename($_FILES['photo']['name']);
             $targetPath = $uploadDir . $fileName;
 
@@ -113,22 +107,28 @@ class RegistrationController
             }
         }
 
-        // 3. Prepare Data
+        // 3. --- PREPARE DATA ---
         $data = [
+            'first_name' => $_POST['first_name'],
+            'last_name' => $_POST['last_name'],
+            'birthdate' => $_POST['birthdate'],
+            'report_subject' => $_POST['report_subject'],
+            'country' => $_POST['country'],
+            'phone' => $_POST['phone'],
+            'email' => $_POST['email'],
+
+            // Step 2 Data
             'company' => $_POST['company'] ?? '',
             'position' => $_POST['position'] ?? '',
             'about_me' => $_POST['about_me'] ?? '',
             'photo_path' => $photoPath
         ];
 
-        // 4. Update Database
+        // 4. --- SAVE TO DATABASE ---
         $userModel = new User();
+        $result = $userModel->createFullUser($data);
 
-        if ($userModel->update($userId, $data)) {
-            echo json_encode(['success' => true]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Database update failed.']);
-        }
+        echo json_encode($result);
     }
 
     /**

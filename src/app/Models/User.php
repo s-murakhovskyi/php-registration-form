@@ -16,21 +16,33 @@ class User
         $this->pdo = Database::getInstance()->getConnection();
     }
 
-    // Create new user (Step 1)
-    public function create(array $data): array
+    // --- NEW: Helper to check if email exists (Used by Controller AJAX & createFullUser) ---
+    public function emailExists($email)
     {
-        // Check if email exists (Unique email requirement)
-        if (!empty($data['email'])) {
-            $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
-            $stmt->execute([$data['email']]);
-            if ($stmt->fetch()) {
-                return ['success' => false, 'message' => 'Email already registered.'];
-            }
+        $stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        return (bool) $stmt->fetch();
+    }
+
+    /**
+     * Create a user with ALL data
+     */
+    public function createFullUser(array $data): array
+    {
+        // 1. Check if email exists (Double check for security)
+        // We use the helper function we defined above
+        if (!empty($data['email']) && $this->emailExists($data['email'])) {
+            return ['success' => false, 'message' => 'Email already registered.'];
         }
 
-        // 2. Insert new user
-        $sql = "INSERT INTO users (first_name, last_name, birthdate, report_subject, country, phone, email) 
-                VALUES (:first_name, :last_name, :birthdate, :report_subject, :country, :phone, :email)";
+        // database
+        $sql = "INSERT INTO users (
+                    first_name, last_name, birthdate, report_subject, country, phone, email,
+                    company, position, about_me, photo_path
+                ) VALUES (
+                    :first_name, :last_name, :birthdate, :report_subject, :country, :phone, :email,
+                    :company, :position, :about_me, :photo_path
+                )";
 
         try {
             $stmt = $this->pdo->prepare($sql);
@@ -41,48 +53,25 @@ class User
                 ':report_subject' => $data['report_subject'],
                 ':country' => $data['country'],
                 ':phone' => $data['phone'],
-                ':email' => $data['email'] ?: null
+                ':email' => $data['email'],
+                ':company' => $data['company'] ?? '',
+                ':position' => $data['position'] ?? '',
+                ':about_me' => $data['about_me'] ?? '',
+                ':photo_path' => $data['photo_path'] ?? 'default.jpg'
             ]);
 
-            // Return the ID so we can update this user in Step 2
             return ['success' => true, 'id' => $this->pdo->lastInsertId()];
         } catch (PDOException $e) {
-            // Log the actual error for debugging if needed
             return ['success' => false, 'message' => 'Database Error: ' . $e->getMessage()];
         }
     }
 
-    // Update user (Step 2)
-    public function update($id, array $data): bool
-    {
-        $sql = "UPDATE users 
-                SET company = :company, 
-                    position = :position, 
-                    about_me = :about_me, 
-                    photo_path = :photo_path 
-                WHERE id = :id";
-
-        try {
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([
-                ':company' => $data['company'] ?? null,
-                ':position' => $data['position'] ?? null,
-                ':about_me' => $data['about_me'] ?? null,
-                ':photo_path' => $data['photo_path'] ?? 'default.jpg',
-                ':id' => $id
-            ]);
-
-            return true;
-        } catch (PDOException $e) {
-            return false;
-        }
-    }
-
-    // Get all users for the "All Members" page
+    /**
+     * Get all users for the "All Members" page
+     */
     public function getAll(): array
     {
         try {
-            // Select all columns, ordered by newest first
             $stmt = $this->pdo->query("SELECT * FROM users ORDER BY created_at DESC");
             return $stmt->fetchAll();
         } catch (PDOException $e) {

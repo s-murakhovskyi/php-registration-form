@@ -34,7 +34,6 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Add marker for the address from PDF
     L.marker([34.1016, -118.3406]).addTo(map)
         .bindPopup('7060 Hollywood Blvd, Los Angeles, CA')
         .openPopup();

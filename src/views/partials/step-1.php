@@ -1,3 +1,6 @@
+<?php
+include __DIR__."/../countries.php";
+?>
 <fieldset>
     <div class="mb-3">
         <label for="first_name" class="form-label">First Name *</label>
@@ -23,22 +26,32 @@
         <label for="country" class="form-label">Country *</label>
         <select class="form-select" id="country" name="country" required>
             <option value="">-- Please select --</option>
-            <option value="USA">USA</option>
-            <option value="Canada">Canada</option>
-            <option value="Ukraine">Ukraine</option>
+
+            <?php foreach ($countries as $country): ?>
+                <option value="<?= htmlspecialchars($country) ?>">
+                    <?= htmlspecialchars($country) ?>
+                </option>
+            <?php endforeach; ?>
+
         </select>
     </div>
 
     <div class="mb-3">
         <label for="phone" class="form-label">Phone *</label>
         <input type="tel" class="form-control" id="phone" name="phone"
-               placeholder="+1 (555) 555-5555" required>
+               placeholder="+1 (555) 555-5555"
+               pattern="^[\+]?[\d\s\-\(\)]{10,25}$"
+               title="Must be a valid phone number (at least 10 characters long)"
+               required>
     </div>
 
     <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
+        <label for="email" class="form-label">Email *</label>
         <input type="email" class="form-control" id="email" name="email"
-               placeholder="Unique email (optional)">
+               placeholder="example@mail.com"
+               pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+               title="Must be a valid email address (e.g. user@domain.com)"
+               required>
     </div>
 
     <div class="d-flex justify-content-end">
