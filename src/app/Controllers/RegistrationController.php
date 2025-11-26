@@ -66,14 +66,36 @@ class RegistrationController
             }
         }
 
+        // --- NAME VALIDATION ---
+        $namePattern = "/^[a-zA-Z\x{00C0}-\x{00FF}\s\-\']+$/u";
+
+        if (!empty($_POST['first_name']) && !preg_match($namePattern, $_POST['first_name'])) {
+            $missingFields[] = 'First Name (Letters only)';
+        }
+        if (!empty($_POST['last_name']) && !preg_match($namePattern, $_POST['last_name'])) {
+            $missingFields[] = 'Last Name (Letters only)';
+        }
+
+        // --- BIRTHDATE VALIDATION ---
+        if (!empty($_POST['birthdate'])) {
+            $birthDate = $_POST['birthdate'];
+            $today = date('Y-m-d');
+
+            if ($birthDate > $today) {
+                $missingFields[] = 'Birthdate (Cannot be in the future)';
+            }
+        }
+
         // --- EMAIL VALIDATION ---
         if (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            $missingFields[] = 'Email (Invalid Format)'; // <--- Rejects "bob", accepts "bob@mail.com"
+            $missingFields[] = 'Email (Invalid Format)';
         }
 
         // --- PHONE VALIDATION ---
-        if (!empty($_POST['phone']) && !preg_match('/^[\+]?[\d\s\-\(\)]{10,25}$/', $_POST['phone'])) {
-            $missingFields[] = 'Phone (Invalid Format or Length)'; // <--- Rejects "abc" or "+1"
+        $phoneRegex = '/^\+\d{1} \(\d{3}\) \d{3}-\d{4}$/';
+
+        if (!empty($_POST['phone']) && !preg_match($phoneRegex, $_POST['phone'])) {
+            $missingFields[] = 'Phone (Must be in format: +X (XXX) XXX-XXXX)';
         }
 
         // If validation fails, stop and return errors
@@ -99,7 +121,7 @@ class RegistrationController
             $fileName = time() . '_' . basename($_FILES['photo']['name']);
             $targetPath = $uploadDir . $fileName;
 
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
             if (in_array($_FILES['photo']['type'], $allowedTypes)) {
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $targetPath)) {
                     $photoPath = 'uploads/' . $fileName;

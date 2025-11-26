@@ -1,15 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    // --- CONFIGURATION ---
+    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
     // Get Elements
     const step1Div = document.getElementById('step-1');
     const step2Div = document.getElementById('step-2');
     const step3Div = document.getElementById('step-3-social');
+    const phoneInput = document.getElementById('phone');
+
+    // --- DYNAMIC PHONE MASK ---
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function (e) {
+            // Strip non-numbers
+            let input = e.target.value.replace(/\D/g, '');
+            if (!input) {
+                e.target.value = '';
+                return;
+            }
+            if (input.length > 11) input = input.substring(0, 11);          // Prevent typing too many digits
+            let formatted = '+';            // Rebuild string
+            if (input.length > 0) {
+                formatted += input.substring(0, 1);
+            }
+            if (input.length >= 2) {
+                formatted += ' (' + input.substring(1, 4);
+            }
+            if (input.length >= 5) {
+                formatted += ') ' + input.substring(4, 7);
+            }
+            if (input.length >= 8) {
+                formatted += '-' + input.substring(7, 11);
+            }
+            e.target.value = formatted;
+        });
+    }
 
     // CHECK STORAGE ON LOAD
     const savedStep = localStorage.getItem('registration_step');
     const savedData = JSON.parse(localStorage.getItem('registration_data')) || {};
 
-    // to refill fields if they exist in memory
+    // refill fields
     if (savedData.first_name) document.getElementById('first_name').value = savedData.first_name;
     if (savedData.last_name) document.getElementById('last_name').value = savedData.last_name;
     if (savedData.birthdate) document.getElementById('birthdate').value = savedData.birthdate;
@@ -36,13 +67,13 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
 
             // Validate ALL required fields
-            const fname = document.getElementById('first_name').value;
-            const lname = document.getElementById('last_name').value;
+            const fname = document.getElementById('first_name').value.trim();
+            const lname = document.getElementById('last_name').value.trim();
             const birth = document.getElementById('birthdate').value;
-            const subject = document.getElementById('report_subject').value;
+            const subject = document.getElementById('report_subject').value.trim();
             const country = document.getElementById('country').value;
-            const phone = document.getElementById('phone').value;
-            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
 
             // check for empty strings
             if (!fname || !lname || !birth || !subject || !country || !phone || !email) {
@@ -50,17 +81,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Email Check
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            // Name Validation
+            const namePattern = /^[a-zA-Z\u00C0-\u00FF\s\-\']+$/;
+
+            if (!namePattern.test(fname)) {
+                alert("First Name cannot contain numbers or special symbols.");
+                return;
+            }
+            if (!namePattern.test(lname)) {
+                alert("Last Name cannot contain numbers or special symbols.");
+                return;
+            }
+
+            // Date Validation
+            const selectedDate = new Date(birth);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate > today) {
+                alert("Birthdate cannot be in the future.");
+                return;
+            }
+
+            // STRICT Email Check (Latin Only)
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             if (!emailPattern.test(email)) {
-                alert("Please enter a valid email address.");
+                alert("Please enter a valid email address (Latin characters only).");
                 return;
             }
 
             // Phone Check
-            const phonePattern = /^[\+]?[\d\s\-\(\)]{10,25}$/;
-            if (!phonePattern.test(phone)) {
-                alert("Phone number is invalid. It must be 10-25 digits/characters long.");
+            // Pattern: +1 (555) 555-5555
+            const phoneStrictPattern = /^\+\d{1} \(\d{3}\) \d{3}-\d{4}$/;
+            if (!phoneStrictPattern.test(phone)) {
+                alert("Please enter a complete phone number: +1 (555) 555-5555");
                 return;
             }
 
@@ -136,13 +190,13 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('email', document.getElementById('email').value);
 
             // Step 2
-            formData.append('company', document.getElementById('company').value);
-            formData.append('position', document.getElementById('position').value);
+            formData.append('company', company);
+            formData.append('position', position);
             formData.append('about_me', document.getElementById('about_me').value);
 
-            // File
+            // file upload
             const photoInput = document.getElementById('photo');
-            if (photoInput.files[0]) {
+            if (photoInput && photoInput.files[0]) {
                 formData.append('photo', photoInput.files[0]);
             }
 

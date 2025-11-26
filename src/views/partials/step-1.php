@@ -14,7 +14,12 @@ include __DIR__."/../countries.php";
 
     <div class="mb-3">
         <label for="birthdate" class="form-label">Birthdate *</label>
-        <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+        <input type="date"
+               class="form-control"
+               id="birthdate"
+               name="birthdate"
+               max="<?= date('Y-m-d') ?>"
+               required>
     </div>
 
     <div class="mb-3">
@@ -40,8 +45,7 @@ include __DIR__."/../countries.php";
         <label for="phone" class="form-label">Phone *</label>
         <input type="tel" class="form-control" id="phone" name="phone"
                placeholder="+1 (555) 555-5555"
-               pattern="^[\+]?[\d\s\-\(\)]{10,25}$"
-               title="Must be a valid phone number (at least 10 characters long)"
+               maxlength="19"
                required>
     </div>
 
