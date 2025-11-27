@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Name Validation
-            const namePattern = /^[a-zA-Z\u00C0-\u00FF\s\-\']+$/;
+            const namePattern = /^[\p{L}\s\-']+$/u;
 
             if (!namePattern.test(fname)) {
                 alert("First Name cannot contain numbers or special symbols.");
@@ -181,18 +181,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
 
             // Step 1
-            formData.append('first_name', document.getElementById('first_name').value);
-            formData.append('last_name', document.getElementById('last_name').value);
-            formData.append('birthdate', document.getElementById('birthdate').value);
-            formData.append('report_subject', document.getElementById('report_subject').value);
-            formData.append('country', document.getElementById('country').value);
-            formData.append('phone', document.getElementById('phone').value);
-            formData.append('email', document.getElementById('email').value);
+            formData.append('first_name', document.getElementById('first_name').value.trim());
+            formData.append('last_name', document.getElementById('last_name').value.trim());
+            formData.append('birthdate', document.getElementById('birthdate').value.trim());
+            formData.append('report_subject', document.getElementById('report_subject').value.trim());
+            formData.append('country', document.getElementById('country').value.trim());
+            formData.append('phone', document.getElementById('phone').value.trim());
+            formData.append('email', document.getElementById('email').value.trim());
 
             // Step 2
-            formData.append('company', company);
-            formData.append('position', position);
-            formData.append('about_me', document.getElementById('about_me').value);
+            formData.append('company', document.getElementById('company').value.trim());
+            formData.append('position', document.getElementById('position').value.trim());
+            formData.append('about_me', document.getElementById('about_me').value.trim());
 
             // file upload
             const photoInput = document.getElementById('photo');

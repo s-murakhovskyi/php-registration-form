@@ -67,7 +67,7 @@ class RegistrationController
         }
 
         // --- NAME VALIDATION ---
-        $namePattern = "/^[a-zA-Z\x{00C0}-\x{00FF}\s\-\']+$/u";
+        $namePattern = "/^[\p{L}\s\-\']+$/u";
 
         if (!empty($_POST['first_name']) && !preg_match($namePattern, $_POST['first_name'])) {
             $missingFields[] = 'First Name (Letters only)';
