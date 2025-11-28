@@ -3,8 +3,8 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
 id INT AUTO_INCREMENT PRIMARY KEY,
-first_name VARCHAR(100) NOT NULL,
-last_name VARCHAR(100) NOT NULL,
+first_name TEXT NOT NULL,
+last_name TEXT NOT NULL,
 birthdate DATE NOT NULL,
 report_subject TEXT NOT NULL,
 country VARCHAR(100) NOT NULL,
@@ -13,6 +13,6 @@ email VARCHAR(150) UNIQUE NOT NULL,
 company TEXT,
 position TEXT,
 about_me TEXT,
-photo_path VARCHAR(255) DEFAULT 'default.jpg',
+photo_path VARCHAR(1024) DEFAULT 'default.jpg',
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

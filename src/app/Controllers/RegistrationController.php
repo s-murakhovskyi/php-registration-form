@@ -67,7 +67,7 @@ class RegistrationController
         }
 
         // --- NAME VALIDATION ---
-        $namePattern = "/^[\p{L}\s\-\']+$/u";
+        $namePattern = "/^[\p{L}\s\-\'\.,]+$/u";
 
         if (!empty($_POST['first_name']) && !preg_match($namePattern, $_POST['first_name'])) {
             $missingFields[] = 'First Name (Letters only)';
@@ -121,7 +121,7 @@ class RegistrationController
             $fileName = time() . '_' . basename($_FILES['photo']['name']);
             $targetPath = $uploadDir . $fileName;
 
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/bmp', 'image/avif'];
             if (in_array($_FILES['photo']['type'], $allowedTypes)) {
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $targetPath)) {
                     $photoPath = 'uploads/' . $fileName;

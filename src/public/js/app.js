@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- CONFIGURATION ---
-    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/bmp', 'image/avif'];
 
     // Get Elements
     const step1Div = document.getElementById('step-1');
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Name Validation
-            const namePattern = /^[\p{L}\s\-']+$/u;
+            const namePattern = /^[\p{L}\s\-'.,]+$/u;
 
             if (!namePattern.test(fname)) {
                 alert("First Name cannot contain numbers or special symbols.");
