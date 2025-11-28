@@ -121,7 +121,7 @@ class RegistrationController
             $fileName = time() . '_' . basename($_FILES['photo']['name']);
             $targetPath = $uploadDir . $fileName;
 
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
             if (in_array($_FILES['photo']['type'], $allowedTypes)) {
                 if (move_uploaded_file($_FILES['photo']['tmp_name'], $targetPath)) {
                     $photoPath = 'uploads/' . $fileName;

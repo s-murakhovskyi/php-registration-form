@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- CONFIGURATION ---
-    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
     // Get Elements
     const step1Div = document.getElementById('step-1');
